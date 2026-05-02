@@ -1,28 +1,22 @@
 import fs from 'fs';
 import pdf from 'pdf-parse/lib/pdf-parse.js';
-import { Transaction } from './icici';
+import { Transaction, ParseResult } from './icici';
 
-export async function parseGPayPDF(filePath: string): Promise<Transaction[]> {
+export async function parseGPayPDF(filePath: string): Promise<ParseResult> {
   const dataBuffer = fs.readFileSync(filePath);
   const data = await pdf(dataBuffer);
   const text = data.text;
   const fileName = filePath.split(/[\\/]/).pop() || '';
 
   const transactions: Transaction[] = [];
-  
-  // GPay pattern:
-  // Date (e.g. 05Apr, 2026 or 05Apr,2026)
-  // Time
-  // "Paid to" / "Received from" / "Self transfer to"
-  // ...
-  // ₹Amount
+  let rawCount = 0;
   
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   
   for (let i = 0; i < lines.length; i++) {
-    // More flexible date regex
     const dateMatch = lines[i].match(/(\d{1,2}[A-Z][a-z]{2},\s?\d{4})/);
     if (dateMatch) {
+      rawCount++;
       const dateStr = dateMatch[1];
       let description = "Unknown";
       let amount = 0;
@@ -38,7 +32,7 @@ export async function parseGPayPDF(filePath: string): Promise<Transaction[]> {
           type = 'credit';
         } else if (line.includes('Selftransferto')) {
           description = line.replace('Selftransferto', '').trim();
-          type = 'debit'; // Self transfer is usually a debit from the source
+          type = 'debit';
         }
         
         if (line.startsWith('₹')) {
@@ -61,7 +55,7 @@ export async function parseGPayPDF(filePath: string): Promise<Transaction[]> {
     }
   }
 
-  return transactions;
+  return { transactions, rawCount };
 }
 
 function parseGPayDate(dateStr: string): string {

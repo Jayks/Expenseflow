@@ -15,7 +15,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { TrendingUp, AlertTriangle, CalendarDays, Wallet, AlertCircle } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CalendarDays, Wallet, AlertCircle, Zap } from 'lucide-react';
 
 const PIE_COLORS = ['#3b82f6', '#ec4899']; // Blue for Weekday, Pink for Weekend
 
@@ -89,17 +89,60 @@ export default function DeepInsights() {
           <p className="text-[10px] text-slate-400 mt-1">Predicted monthly recurring</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6 md:col-span-2">
-           <div className="flex items-center gap-3">
-             <div className="p-3 bg-rose-500/10 rounded-xl">
-               <AlertTriangle className="w-6 h-6 text-rose-400" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6 md:col-span-2 flex items-center justify-between bg-gradient-to-br from-purple-500/10 to-transparent border-purple-500/20">
+           <div className="flex items-center gap-4">
+             <div className="p-4 rounded-2xl bg-purple-500/20">
+               <TrendingUp className="w-8 h-8 text-purple-400" />
              </div>
              <div>
-               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Anomalies Detected</p>
-               <h3 className="text-xl font-bold text-white">{data?.anomalies?.length || 0} unusual transactions</h3>
+               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Smart Inferences</p>
+               <h3 className="text-lg font-bold text-white max-w-sm">
+                 Spending on <span className="text-purple-400">{data?.categoryBreakdown?.[0]?.category}</span> is 
+                 <span className="ml-1 text-white">{Math.round((data?.categoryBreakdown?.[0]?.value / (data?.totalSpend || 1)) * 100)}%</span> of total consumption.
+               </h3>
              </div>
            </div>
+           <div className="hidden sm:flex flex-col items-end gap-2 text-right">
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                {data?.totalSpend > 50000 ? 'High Burn Rate' : 'Healthy Spend'}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                AI Classified
+              </span>
+           </div>
         </motion.div>
+      </div>
+
+      {/* Behavioral Deep Dive */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div className="glass-card p-6 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4">
+               <Wallet className="w-6 h-6 text-cyan-400" />
+            </div>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Avg. Daily Burn</p>
+            <h4 className="text-2xl font-bold text-white font-mono">₹{Math.round(data?.totalSpend / 30).toLocaleString()}</h4>
+            <p className="text-[10px] text-slate-500 mt-2">Estimated daily spending velocity</p>
+         </div>
+
+         <div className="glass-card p-6 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-4">
+               <AlertCircle className="w-6 h-6 text-rose-400" />
+            </div>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Most Frequent</p>
+            <h4 className="text-2xl font-bold text-white truncate max-w-full">
+              {data?.recurring?.[0]?.name || 'N/A'}
+            </h4>
+            <p className="text-[10px] text-slate-500 mt-2">You visit this merchant most often</p>
+         </div>
+
+         <div className="glass-card p-6 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+               <Zap className="w-6 h-6 text-emerald-400" />
+            </div>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Savings Potential</p>
+            <h4 className="text-2xl font-bold text-white font-mono">₹{Math.round(data?.totalSpend * 0.15).toLocaleString()}</h4>
+            <p className="text-[10px] text-slate-500 mt-2">Possible save by cutting 15% non-fixed</p>
+         </div>
       </div>
 
       {/* Main Charts Area */}

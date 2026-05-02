@@ -14,7 +14,9 @@ export interface Transaction {
   file_name: string;
 }
 
-export async function parseHdfcXls(filePath: string): Promise<Transaction[]> {
+import { ParseResult } from './icici';
+
+export async function parseHdfcXls(filePath: string): Promise<ParseResult> {
   const fileName = filePath.split(/[\\/]/).pop() || '';
   const dataBuffer = fs.readFileSync(filePath);
   const workbook = xlsx.read(dataBuffer, { type: 'buffer' });
@@ -22,7 +24,8 @@ export async function parseHdfcXls(filePath: string): Promise<Transaction[]> {
   const sheet = workbook.Sheets[sheetName];
   const data: any[][] = xlsx.utils.sheet_to_json(sheet, { header: 1 });
 
-  const transactions: Transaction[] = [];
+  const transactions: any[] = [];
+  let rawCount = 0;
 
   for (let i = 22; i < data.length; i++) {
     const row = data[i];
@@ -39,6 +42,8 @@ export async function parseHdfcXls(filePath: string): Promise<Transaction[]> {
     const credit = parseFloat(row[5]) || 0;
 
     if (!dateVal || (!debit && !credit)) continue;
+
+    rawCount++; // This row looks like a transaction row
 
     let d, m, y;
     try {
@@ -74,5 +79,5 @@ export async function parseHdfcXls(filePath: string): Promise<Transaction[]> {
     }
   }
 
-  return transactions;
+  return { transactions, rawCount };
 }

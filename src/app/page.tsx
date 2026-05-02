@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [selectedChannel, setSelectedChannel] = useState<string>('All');
   const [isYTD, setIsYTD] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showGross, setShowGross] = useState(false);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
@@ -75,6 +76,10 @@ export default function Dashboard() {
     if (selectedChannel !== 'All') {
       query += `&channel=${selectedChannel}`;
     }
+
+    if (showGross) {
+      query += `&gross=true`;
+    }
     
     query += `&page=${currentPage}&limit=50`;
 
@@ -97,7 +102,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedMonth, isYTD, selectedCategory, selectedChannel, currentPage]);
+  }, [selectedMonth, isYTD, selectedCategory, selectedChannel, currentPage, showGross]);
 
   const handleReset = async () => {
     if (!window.confirm('Are you sure you want to delete ALL data and reload from scratch? This will clear all categorizations.')) return;
@@ -244,26 +249,49 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Processed Sources</p>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {syncResult?.details?.map((f: any) => (
                   <div key={f.file} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                     <div className="flex items-center gap-3">
-                      <FileText className="w-4 h-4 text-slate-500" />
-                      <span className="text-sm font-medium text-slate-300 truncate max-w-[200px]">{f.file}</span>
+                      <div className="p-2 rounded-lg bg-white/5">
+                        <FileText className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-200 truncate max-w-[180px]">{f.file}</span>
+                        <span className="text-[9px] text-slate-500 font-mono italic">
+                          {f.parsed} parsed from {f.raw} rows
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
-                      Success
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        f.new > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/10'
+                      } uppercase`}>
+                        {f.new} New
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
 
+              <div className="mt-8 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                       <Zap className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                       <p className="text-xs font-bold text-white uppercase tracking-widest">Grand Total</p>
+                       <p className="text-[10px] text-slate-400">Successfully synced across all files</p>
+                    </div>
+                 </div>
+                 <p className="text-2xl font-bold text-purple-400 font-mono">+{syncResult?.added || 0}</p>
+              </div>
+
               <button 
                 onClick={() => setShowSyncModal(false)}
-                className="w-full mt-8 py-4 rounded-2xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
+                className="w-full mt-6 py-4 rounded-2xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
               >
-                Dismiss
+                Dismiss Report
               </button>
             </motion.div>
           </div>
@@ -369,6 +397,18 @@ export default function Dashboard() {
           >
             <TrendingUp className="w-4 h-4" />
             YTD
+          </button>
+
+          <button 
+            onClick={() => { setShowGross(!showGross); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${
+              showGross 
+              ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+              : 'glass-card border-white/10 text-slate-400 hover:border-emerald-500/50'
+            }`}
+          >
+            <Wallet className="w-4 h-4" />
+            Gross
           </button>
 
           <div className={`flex items-center gap-3 glass-card px-4 py-2 border border-white/10 ${isYTD ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -504,94 +544,83 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         <div className="glass-card p-8 flex flex-col min-h-[400px]">
           <div className="flex justify-between items-center mb-6">
             <h4 className="text-xl font-bold flex items-center gap-2 text-white">
               Spending Distribution <PieChart className="w-4 h-4 text-cyan-400" />
             </h4>
-            {selectedCategory !== 'All' && (
-              <button 
-                onClick={() => setSelectedCategory('All')}
-                className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors border border-cyan-500/20"
-              >
-                Show All Categories
-              </button>
-            )}
-          </div>
-          <div className="flex-1 relative min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RePieChart>
-                <Pie
-                  data={summary?.categoryBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={80}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  onClick={(data) => {
-                    if (data && data.category) {
-                      setSelectedCategory(data.category);
-                      setCurrentPage(1);
-                    }
-                  }}
-                  className="cursor-pointer focus:outline-none"
+            <div className="flex items-center gap-4">
+              <p className="text-xs text-slate-500 font-medium">Total Spend: <span className="text-white font-bold">₹{summary?.fullTotalSpend?.toLocaleString()}</span></p>
+              {selectedCategory !== 'All' && (
+                <button 
+                  onClick={() => setSelectedCategory('All')}
+                  className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors border border-cyan-500/20"
                 >
-                  {summary?.categoryBreakdown?.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px'}}
-                  formatter={(val: number) => [`₹${val.toLocaleString()}`, 'Amount']}
-                />
-              </RePieChart>
-            </ResponsiveContainer>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total</p>
-              <p className="text-2xl font-bold text-white font-mono">₹{summary?.fullTotalSpend?.toLocaleString()}</p>
+                  Show All Categories
+                </button>
+              )}
             </div>
           </div>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {summary?.categoryBreakdown?.map((entry: any, i: number) => (
-              <div 
-                key={entry.category} 
-                onClick={() => { setSelectedCategory(entry.category); setCurrentPage(1); }}
-                className={`flex items-center gap-2 text-[10px] group cursor-pointer p-1.5 rounded-lg transition-colors ${
-                  selectedCategory === entry.category ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5'
-                }`}
-              >
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                <span className={`truncate transition-colors ${selectedCategory === entry.category ? 'text-white font-bold' : 'group-hover:text-white'}`}>
-                  {entry.category}
-                </span>
-                <span className={`ml-auto font-mono ${selectedCategory === entry.category ? 'text-white font-bold' : 'text-slate-500'}`}>
-                  {Math.round((entry.value / (summary.fullTotalSpend || 1)) * 100)}%
-                </span>
+          
+          <div className="flex flex-col lg:flex-row items-center gap-12 mt-4">
+            <div className="relative h-[350px] w-full max-w-[400px] shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <RePieChart>
+                  <Pie
+                    data={summary?.categoryBreakdown}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={90}
+                    outerRadius={120}
+                    paddingAngle={5}
+                    dataKey="value"
+                    onClick={(data) => {
+                      if (data && data.category) {
+                        setSelectedCategory(data.category);
+                        setCurrentPage(1);
+                      }
+                    }}
+                    className="cursor-pointer focus:outline-none"
+                  >
+                    {summary?.categoryBreakdown?.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                    formatter={(val: number) => [`₹${val.toLocaleString()}`, 'Amount']}
+                  />
+                </RePieChart>
+              </ResponsiveContainer>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Consolidated</p>
+                <p className="text-3xl font-bold text-white font-mono">₹{summary?.fullTotalSpend?.toLocaleString()}</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="glass-card p-8 flex flex-col justify-center items-center text-center space-y-6 bg-gradient-to-br from-purple-500/5 to-transparent">
-          <div className="p-6 rounded-3xl bg-purple-500/10 border border-purple-500/20 shadow-2xl shadow-purple-500/10">
-            <TrendingUp className="w-12 h-12 text-purple-400" />
-          </div>
-          <div>
-            <h5 className="text-2xl font-bold text-white font-outfit">Smart Financial Insights</h5>
-            <p className="text-slate-400 mt-2 max-w-xs text-sm leading-relaxed">
-              Your spending on <span className="text-purple-400 font-bold">{summary?.categoryBreakdown?.[0]?.category}</span> accounts for 
-              <span className="text-white font-bold ml-1">{Math.round((summary?.categoryBreakdown?.[0]?.value / (summary?.totalSpend || 1)) * 100)}%</span> of your consumption.
-            </p>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-              {summary?.totalSpend > 50000 ? 'High Burn Rate' : 'Healthy Spend'}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-              AI Classified
-            </span>
+            <div className="flex-1 grid grid-cols-2 sm:grid-cols-2 gap-x-8 gap-y-4 w-full">
+              {summary?.categoryBreakdown?.map((entry: any, i: number) => (
+                <div 
+                  key={entry.category} 
+                  onClick={() => { setSelectedCategory(entry.category); setCurrentPage(1); }}
+                  className={`flex items-center justify-between group cursor-pointer p-3 rounded-xl transition-all border ${
+                    selectedCategory === entry.category ? 'bg-white/10 border-white/20 text-white shadow-lg' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className={`text-sm transition-colors ${selectedCategory === entry.category ? 'text-white font-bold' : 'group-hover:text-white'}`}>
+                      {entry.category}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs font-mono font-bold ${selectedCategory === entry.category ? 'text-white' : 'text-slate-300'}`}>₹{entry.value.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-500">{Math.round((entry.value / (summary.fullTotalSpend || 1)) * 100)}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

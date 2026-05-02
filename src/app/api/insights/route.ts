@@ -112,8 +112,16 @@ export async function GET() {
       }
     }
 
-    // Limit anomalies to top 10 largest
-    anomalies.sort((a, b) => b.amount - a.amount);
+    // 5. Category Breakdown (for insights summary)
+    const categoryBreakdown = db.prepare(`
+      SELECT category, SUM(amount) as value 
+      FROM transactions 
+      WHERE type = 'debit' AND category NOT IN ('Transfer', 'Investment', 'Salary')
+      GROUP BY category 
+      ORDER BY value DESC
+    `).all();
+
+    const totalSpend = categoryBreakdown.reduce((sum, c: any) => sum + (c.value || 0), 0);
 
     return NextResponse.json({
       cashFlow,
@@ -124,7 +132,9 @@ export async function GET() {
       },
       recurring: recurring.slice(0, 10),
       totalFixedCosts,
-      anomalies: anomalies.slice(0, 10)
+      anomalies: anomalies.slice(0, 10),
+      categoryBreakdown,
+      totalSpend
     });
   } catch (error) {
     console.error("Insights API Error:", error);

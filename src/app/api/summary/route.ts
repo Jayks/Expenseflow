@@ -41,13 +41,17 @@ export async function GET(request: Request) {
       params.push(category);
     }
 
+    const showGross = searchParams.get('gross') === 'true';
+    const excludedCategories = "('Transfer', 'Investment', 'Salary')";
+    const categoryFilter = showGross ? "" : ` AND category NOT IN ${excludedCategories}`;
+
     // Total Consumption Spend
     const totalSpend = db.prepare(`
       SELECT SUM(amount) as total 
       FROM transactions 
       ${whereClause} 
       AND type = 'debit'
-      AND category NOT IN ('Transfer', 'Investment', 'Salary')
+      ${categoryFilter}
     `).get(...params).total || 0;
 
     // Avg Spent
@@ -56,7 +60,7 @@ export async function GET(request: Request) {
       FROM transactions 
       ${whereClause} 
       AND type = 'debit'
-      AND category NOT IN ('Transfer', 'Investment', 'Salary')
+      ${categoryFilter}
     `).get(...params).avg || 0;
 
     // Avg Received
@@ -73,7 +77,7 @@ export async function GET(request: Request) {
       FROM transactions 
       ${baseWhereClause}
       AND type = 'debit'
-      AND category NOT IN ('Transfer', 'Investment', 'Salary')
+      ${categoryFilter}
       GROUP BY category 
       ORDER BY value DESC
     `).all(...baseParams);
@@ -83,7 +87,7 @@ export async function GET(request: Request) {
       FROM transactions 
       ${baseWhereClause} 
       AND type = 'debit'
-      AND category NOT IN ('Transfer', 'Investment', 'Salary')
+      ${categoryFilter}
     `).get(...baseParams).total || 0;
 
     // Trend Logic (Excluding non-consumption)
@@ -94,7 +98,7 @@ export async function GET(request: Request) {
         FROM transactions 
         ${whereClause} 
         AND type = 'debit'
-        AND category NOT IN ('Transfer', 'Investment', 'Salary')
+        ${categoryFilter}
         GROUP BY label 
         ORDER BY label ASC
       `).all(...params);
@@ -104,7 +108,7 @@ export async function GET(request: Request) {
         FROM transactions 
         ${whereClause} 
         AND type = 'debit'
-        AND category NOT IN ('Transfer', 'Investment', 'Salary')
+        ${categoryFilter}
         GROUP BY label 
         ORDER BY label ASC
       `).all(...params);

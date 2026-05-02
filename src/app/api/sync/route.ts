@@ -40,30 +40,33 @@ export async function POST(req: Request) {
         if (existing) continue;
 
         const filePath = path.join(dataDir, file);
-        let transactions: any[] = [];
+        let parseResult: any = { transactions: [], rawCount: 0 };
 
         const fileLower = file.toLowerCase();
         if (fileLower.includes('icici') || fileLower.includes('optransactionhistory')) {
-          transactions = await parseICICI(filePath);
+          parseResult = await parseICICI(filePath);
         } else if (fileLower.includes('gpay')) {
-          transactions = await parseGPayPDF(filePath);
+          parseResult = await parseGPayPDF(filePath);
         } else if (fileLower.includes('hdfc')) {
-          transactions = await parseHdfcXls(filePath);
+          parseResult = await parseHdfcXls(filePath);
         } else {
           continue;
         }
         
-        if (transactions.length > 0) {
+        const transactions = parseResult.transactions;
+        if (transactions.length > 0 || parseResult.rawCount > 0) {
           const insertStmt = db.prepare(`
             INSERT OR IGNORE INTO transactions (date, description, amount, type, category, bank_source, month, year, file_name)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           `);
 
+          let actuallyInserted = 0;
+
           const insertTransaction = db.transaction((txs: any[]) => {
             for (const t of txs) {
               const date = new Date(t.date);
               const category = t.category || categorize(t.description);
-              insertStmt.run(
+              const info = insertStmt.run(
                 t.date,
                 t.description,
                 t.amount,
@@ -74,18 +77,25 @@ export async function POST(req: Request) {
                 date.getFullYear(),
                 file
               );
+              actuallyInserted += info.changes;
             }
           });
 
           insertTransaction(transactions);
-          totalAdded += transactions.length;
+          totalAdded += actuallyInserted;
 
           db.prepare('INSERT INTO synced_files (file_name, synced_at) VALUES (?, ?)').run(
             file,
             new Date().toISOString()
           );
           
-          results.push({ file, status: 'success', count: transactions.length });
+          results.push({ 
+            file, 
+            status: 'success', 
+            raw: parseResult.rawCount,
+            parsed: transactions.length,
+            new: actuallyInserted
+          });
         }
       } catch (error: any) {
         console.error(`Failed to process ${file}:`, error);
