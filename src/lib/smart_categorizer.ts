@@ -3,10 +3,15 @@ import http from 'http';
 
 const CATEGORIES = ['Salary', 'Rent', 'Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'Transfer', 'Investment', 'Tax'];
 
-async function askOllama(description: string): Promise<string> {
-  const prompt = `Categorize this bank transaction description into exactly one of these categories: ${CATEGORIES.join(', ')}. 
-Description: "${description}"
-Return only the category name.`;
+async function askOllamaBatch(items: {id: number, description: string}[]): Promise<string[]> {
+  const descriptions = items.map((t, i) => `${i+1}. ${t.description}`).join('\n');
+  const prompt = `Categorize these ${items.length} bank transaction descriptions into exactly one of these categories: ${CATEGORIES.join(', ')}.
+
+Descriptions:
+${descriptions}
+
+Return ONLY a comma-separated list of ${items.length} category names in the exact same order as the descriptions above. Do not include numbers or any other text.
+Example: Food, Transport, Shopping`;
 
   return new Promise((resolve) => {
     const data = JSON.stringify({
@@ -22,7 +27,7 @@ Return only the category name.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': data.length
+        'Content-Length': Buffer.byteLength(data)
       }
     };
 
@@ -33,36 +38,50 @@ Return only the category name.`;
         try {
           const json = JSON.parse(body);
           const response = json.response.trim();
-          const match = CATEGORIES.find(c => response.toLowerCase().includes(c.toLowerCase()));
-          resolve(match || 'Other');
+          const parts = response.split(',').map((p: string) => p.trim());
+          
+          const results = items.map((_, i) => {
+            const part = parts[i];
+            if (!part) return 'Uncategorized';
+            const match = CATEGORIES.find(c => part.toLowerCase().includes(c.toLowerCase()));
+            return match || 'Uncategorized';
+          });
+          
+          resolve(results);
         } catch (e) {
-          resolve('Other');
+          resolve(items.map(() => 'Uncategorized'));
         }
       });
     });
 
-    req.on('error', () => resolve('Other'));
+    req.on('error', () => resolve(items.map(() => 'Uncategorized')));
     req.write(data);
     req.end();
   });
 }
 
 export async function runSmartCategorization() {
-  const others = db.prepare("SELECT id, description FROM transactions WHERE category = 'Other'").all();
+  const others = db.prepare("SELECT id, description FROM transactions WHERE category = 'Other'").all() as any[];
   if (others.length === 0) return 0;
 
+  const BATCH_SIZE = 10;
   const updateStmt = db.prepare('UPDATE transactions SET category = ? WHERE id = ?');
   let count = 0;
 
-  for (const t of others as any[]) {
-    const category = await askOllama(t.description);
-    const finalCategory = category === 'Other' ? 'Uncategorized' : category;
+  for (let i = 0; i < others.length; i += BATCH_SIZE) {
+    const chunk = others.slice(i, i + BATCH_SIZE);
+    const categories = await askOllamaBatch(chunk);
     
-    updateStmt.run(finalCategory, t.id);
-    
-    if (finalCategory !== 'Uncategorized') {
-      count++;
-    }
+    const updateTransaction = db.transaction((items: any[], cats: string[]) => {
+      for (let j = 0; j < items.length; j++) {
+        updateStmt.run(cats[j], items[j].id);
+        if (cats[j] !== 'Uncategorized') {
+          count++;
+        }
+      }
+    });
+
+    updateTransaction(chunk, categories);
   }
 
   return count;

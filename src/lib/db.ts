@@ -28,6 +28,12 @@ export function initDb() {
       file_name TEXT UNIQUE NOT NULL,
       synced_at TEXT NOT NULL
     );
+
+    -- Performance Indexes
+    CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+    CREATE INDEX IF NOT EXISTS idx_transactions_month_year ON transactions(month, year);
+    CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
+    CREATE INDEX IF NOT EXISTS idx_transactions_filters ON transactions(year, month, category, type, bank_source);
   `);
 }
 
