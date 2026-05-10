@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDownRight, CreditCard, PieChart, TrendingUp, Zap, Calendar, Filter, ChevronLeft, ChevronRight, ShoppingBag, Wallet, Download, RefreshCw, CheckCircle2, AlertCircle, FileText, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  PieChart as RePieChart, 
-  Pie, 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart as RePieChart,
+  Pie,
   Cell,
   CartesianGrid
 } from 'recharts';
@@ -68,7 +68,7 @@ export default function Dashboard() {
       const [m, y] = selectedMonth.split('-');
       query = `month=${m}&year=${y}`;
     }
-    
+
     if (selectedCategory !== 'All') {
       query += `&category=${selectedCategory}`;
     }
@@ -80,7 +80,7 @@ export default function Dashboard() {
     if (showGross) {
       query += `&gross=true`;
     }
-    
+
     query += `&page=${currentPage}&limit=50`;
 
     try {
@@ -106,7 +106,7 @@ export default function Dashboard() {
 
   const handleReset = async () => {
     if (!window.confirm('Are you sure you want to delete ALL data and reload from scratch? This will clear all categorizations.')) return;
-    
+
     setLoading(true);
     try {
       const res = await fetch('/api/reset', { method: 'POST' });
@@ -128,12 +128,12 @@ export default function Dashboard() {
     if (finalPath) {
       localStorage.setItem('expenseSyncPath', finalPath);
     }
-    
+
     setShowPathModal(false);
     setSyncing(true);
     setSyncResult(null);
     try {
-      const res = await fetch('/api/sync', { 
+      const res = await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ folderPath: finalPath || undefined })
@@ -157,37 +157,37 @@ export default function Dashboard() {
   };
 
   const stats = [
-    { 
-      name: 'Total Spent', 
-      value: `₹${summary?.totalSpend?.toLocaleString() || 0}`, 
-      icon: CreditCard, 
-      color: 'text-purple-400' 
+    {
+      name: 'Total Spent',
+      value: `₹${summary?.totalSpend?.toLocaleString() || 0}`,
+      icon: CreditCard,
+      color: 'text-purple-400'
     },
-    { 
-      name: 'Avg. Spent', 
-      value: `₹${Math.round(summary?.avgSpent || 0).toLocaleString()}`, 
-      icon: TrendingUp, 
-      color: 'text-rose-400' 
+    {
+      name: 'Avg. Spent',
+      value: `₹${Math.round(summary?.avgSpent || 0).toLocaleString()}`,
+      icon: TrendingUp,
+      color: 'text-rose-400'
     },
-    { 
-      name: 'Avg. Received', 
-      value: `₹${Math.round(summary?.avgReceived || 0).toLocaleString()}`, 
-      icon: Download, 
-      color: 'text-emerald-400' 
+    {
+      name: 'Avg. Received',
+      value: `₹${Math.round(summary?.avgReceived || 0).toLocaleString()}`,
+      icon: Download,
+      color: 'text-emerald-400'
     },
-    { 
-      name: 'Top Category', 
-      value: summary?.categoryBreakdown?.[0]?.category || 'N/A', 
-      sub: `₹${summary?.categoryBreakdown?.[0]?.value?.toLocaleString() || 0}`, 
-      icon: PieChart, 
-      color: 'text-teal-400' 
+    {
+      name: 'Top Category',
+      value: summary?.categoryBreakdown?.[0]?.category || 'N/A',
+      sub: `₹${summary?.categoryBreakdown?.[0]?.value?.toLocaleString() || 0}`,
+      icon: PieChart,
+      color: 'text-teal-400'
     },
-    { 
-      name: 'Total Items', 
-      value: `${pagination.total}`, 
-      sub: 'Bank entries', 
-      icon: Zap, 
-      color: 'text-yellow-400' 
+    {
+      name: 'Total Items',
+      value: `${pagination.total}`,
+      sub: 'Bank entries',
+      icon: Zap,
+      color: 'text-yellow-400'
     },
   ];
 
@@ -196,14 +196,14 @@ export default function Dashboard() {
       <AnimatePresence>
         {showSyncModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSyncModal(false)}
               className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -264,9 +264,8 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        f.new > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/10'
-                      } uppercase`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${f.new > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/10'
+                        } uppercase`}>
                         {f.new} New
                       </span>
                     </div>
@@ -275,19 +274,19 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-8 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
-                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                       <Zap className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div>
-                       <p className="text-xs font-bold text-white uppercase tracking-widest">Grand Total</p>
-                       <p className="text-[10px] text-slate-400">Successfully synced across all files</p>
-                    </div>
-                 </div>
-                 <p className="text-2xl font-bold text-purple-400 font-mono">+{syncResult?.added || 0}</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white uppercase tracking-widest">Grand Total</p>
+                    <p className="text-[10px] text-slate-400">Successfully synced across all files</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-purple-400 font-mono">+{syncResult?.added || 0}</p>
               </div>
 
-              <button 
+              <button
                 onClick={() => setShowSyncModal(false)}
                 className="w-full mt-6 py-4 rounded-2xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
               >
@@ -296,22 +295,22 @@ export default function Dashboard() {
             </motion.div>
           </div>
         )}
-        
+
         {showPathModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="glass-card w-full max-w-lg p-8 relative"
             >
-              <button 
+              <button
                 onClick={() => setShowPathModal(false)}
                 className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
-              
+
               <div className="mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-4 border border-cyan-500/20">
                   <Wallet className="w-6 h-6 text-cyan-400" />
@@ -323,28 +322,28 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Local Folder Path</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={syncPath}
                     onChange={(e) => setSyncPath(e.target.value)}
                     placeholder="e.g. E:\Downloads\FinanceData"
                     className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors font-mono"
                   />
                 </div>
-                
+
                 <p className="text-[10px] text-slate-500">
                   Leave blank to use the default <code>Data/</code> directory in the project workspace.
                 </p>
               </div>
 
               <div className="flex gap-4 mt-8">
-                <button 
+                <button
                   onClick={() => setShowPathModal(false)}
                   className="flex-1 py-3 rounded-xl bg-white/5 text-slate-300 font-bold hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => handleSync(syncPath)}
                   className="flex-1 py-3 rounded-xl bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-500/20"
                 >
@@ -361,24 +360,23 @@ export default function Dashboard() {
           <h2 className="text-4xl font-bold font-outfit tracking-tight text-white">Financial Hub</h2>
           <p className="text-slate-400 mt-1">Real-time spend analysis and historical insights.</p>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-col items-center gap-2">
-            <button 
+            <button
               disabled={syncing || loading}
               onClick={() => setShowPathModal(true)}
-              className={`px-6 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${
-                syncing 
-                ? 'bg-white/5 border-white/10 text-slate-500 cursor-not-allowed' 
-                : 'bg-white text-slate-950 border-white hover:bg-slate-200 shadow-lg shadow-white/10'
-              }`}
+              className={`px-6 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${syncing
+                  ? 'bg-white/5 border-white/10 text-slate-500 cursor-not-allowed'
+                  : 'bg-white text-slate-950 border-white hover:bg-slate-200 shadow-lg shadow-white/10'
+                }`}
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Synchronizing...' : 'Sync Data'}
             </button>
-            
+
             {syncResult && !syncing && (
-              <button 
+              <button
                 onClick={() => setShowSyncModal(true)}
                 className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest flex items-center gap-1"
               >
@@ -387,25 +385,23 @@ export default function Dashboard() {
             )}
           </div>
 
-          <button 
+          <button
             onClick={() => { setIsYTD(!isYTD); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${
-              isYTD 
-              ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20' 
-              : 'glass-card border-white/10 text-slate-400 hover:border-purple-500/50'
-            }`}
+            className={`px-4 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${isYTD
+                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20'
+                : 'glass-card border-white/10 text-slate-400 hover:border-purple-500/50'
+              }`}
           >
             <TrendingUp className="w-4 h-4" />
             YTD
           </button>
 
-          <button 
+          <button
             onClick={() => { setShowGross(!showGross); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${
-              showGross 
-              ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
-              : 'glass-card border-white/10 text-slate-400 hover:border-emerald-500/50'
-            }`}
+            className={`px-4 py-2 rounded-xl border transition-all text-sm font-bold flex items-center gap-2 ${showGross
+                ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                : 'glass-card border-white/10 text-slate-400 hover:border-emerald-500/50'
+              }`}
           >
             <Wallet className="w-4 h-4" />
             Gross
@@ -413,7 +409,7 @@ export default function Dashboard() {
 
           <div className={`flex items-center gap-3 glass-card px-4 py-2 border border-white/10 ${isYTD ? 'opacity-50 pointer-events-none' : ''}`}>
             <Calendar className="w-4 h-4 text-purple-400" />
-            <select 
+            <select
               value={selectedMonth}
               onChange={(e) => { setSelectedMonth(e.target.value); setCurrentPage(1); }}
               className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer outline-none min-w-[120px] text-white"
@@ -428,7 +424,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-3 glass-card px-4 py-2 border border-white/10">
             <Filter className="w-4 h-4 text-cyan-400" />
-            <select 
+            <select
               value={selectedCategory}
               onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
               className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer outline-none min-w-[100px] text-white"
@@ -443,7 +439,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-3 glass-card px-4 py-2 border border-white/10">
             <Wallet className="w-4 h-4 text-emerald-400" />
-            <select 
+            <select
               value={selectedChannel}
               onChange={(e) => { setSelectedChannel(e.target.value); setCurrentPage(1); }}
               className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer outline-none min-w-[80px] text-white"
@@ -461,8 +457,8 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {stats.map((stat, i) => (
-          <motion.div 
-            key={stat.name} 
+          <motion.div
+            key={stat.name}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
@@ -494,39 +490,39 @@ export default function Dashboard() {
               <AreaChart data={summary?.trend}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#9333ea" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#9333ea" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis 
-                  dataKey="label" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#64748b', fontSize: 10}}
-                  tickFormatter={(val) => isYTD ? MONTH_NAMES[val-1] : `${val}`}
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  tickFormatter={(val) => isYTD ? MONTH_NAMES[val - 1] : `${val}`}
                 />
                 <YAxis hide />
-                <Tooltip 
-                  contentStyle={{backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px'}}
-                  itemStyle={{color: '#9333ea'}}
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                  itemStyle={{ color: '#9333ea' }}
                   formatter={(val: number) => [`₹${val.toLocaleString()}`, 'Spend']}
-                  labelFormatter={(val: any) => isYTD ? MONTH_NAMES[val-1] : `Day ${val}`}
+                  labelFormatter={(val: any) => isYTD ? MONTH_NAMES[val - 1] : `Day ${val}`}
                 />
                 <Area type="monotone" dataKey="total" stroke="#9333ea" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
-        
+
         <div className="glass-card p-8 min-h-[400px] flex flex-col">
           <h4 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
             Top Merchants <ShoppingBag className="w-4 h-4 text-emerald-400" />
           </h4>
           <div className="space-y-4 flex-1">
             {summary?.topMerchants?.map((m: any, i: number) => (
-              <div 
-                key={m.description} 
+              <div
+                key={m.description}
                 title={m.description}
                 className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-colors group cursor-help"
               >
@@ -553,7 +549,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <p className="text-xs text-slate-500 font-medium">Total Spend: <span className="text-white font-bold">₹{summary?.fullTotalSpend?.toLocaleString()}</span></p>
               {selectedCategory !== 'All' && (
-                <button 
+                <button
                   onClick={() => setSelectedCategory('All')}
                   className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors border border-cyan-500/20"
                 >
@@ -562,7 +558,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          
+
           <div className="flex flex-col lg:flex-row items-center gap-12 mt-4">
             <div className="relative h-[350px] w-full max-w-[400px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -587,8 +583,8 @@ export default function Dashboard() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }}
                     formatter={(val: number) => [`₹${val.toLocaleString()}`, 'Amount']}
                   />
                 </RePieChart>
@@ -601,12 +597,11 @@ export default function Dashboard() {
 
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-2 gap-x-8 gap-y-4 w-full">
               {summary?.categoryBreakdown?.map((entry: any, i: number) => (
-                <div 
-                  key={entry.category} 
+                <div
+                  key={entry.category}
                   onClick={() => { setSelectedCategory(entry.category); setCurrentPage(1); }}
-                  className={`flex items-center justify-between group cursor-pointer p-3 rounded-xl transition-all border ${
-                    selectedCategory === entry.category ? 'bg-white/10 border-white/20 text-white shadow-lg' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'
-                  }`}
+                  className={`flex items-center justify-between group cursor-pointer p-3 rounded-xl transition-all border ${selectedCategory === entry.category ? 'bg-white/10 border-white/20 text-white shadow-lg' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
@@ -630,7 +625,7 @@ export default function Dashboard() {
           <h4 className="text-xl font-bold text-white">Transaction History</h4>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1 text-white">
-              <button 
+              <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => prev - 1)}
                 className="p-1 rounded-md hover:bg-white/5 disabled:opacity-20 transition-opacity"
@@ -640,7 +635,7 @@ export default function Dashboard() {
               <span className="text-xs font-bold px-2 text-slate-400">
                 Page {currentPage} of {pagination.totalPages}
               </span>
-              <button 
+              <button
                 disabled={currentPage === pagination.totalPages}
                 onClick={() => setCurrentPage(prev => prev + 1)}
                 className="p-1 rounded-md hover:bg-white/5 disabled:opacity-20 transition-opacity"
@@ -653,7 +648,7 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto relative min-h-[600px]">
           {loading && (
             <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] z-20 flex items-center justify-center">
@@ -672,8 +667,8 @@ export default function Dashboard() {
             <tbody className={`divide-y divide-white/5 transition-opacity duration-300 ${loading ? 'opacity-40' : 'opacity-100'}`}>
               <AnimatePresence mode="wait">
                 {transactions.map((t, i) => (
-                  <motion.tr 
-                    key={t.id} 
+                  <motion.tr
+                    key={t.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -703,11 +698,11 @@ export default function Dashboard() {
               </AnimatePresence>
             </tbody>
           </table>
-          
+
           {/* Bottom Pagination */}
           <div className="p-6 border-t border-white/5 flex justify-center items-center bg-white/[0.01]">
             <div className="flex items-center gap-4 text-white">
-              <button 
+              <button
                 disabled={currentPage === 1}
                 onClick={() => {
                   setCurrentPage(prev => prev - 1);
@@ -716,12 +711,12 @@ export default function Dashboard() {
               >
                 <ChevronLeft className="w-4 h-4" /> Previous
               </button>
-              
+
               <span className="text-xs font-bold text-slate-400 min-w-[100px] text-center">
                 Page {currentPage} / {pagination.totalPages}
               </span>
 
-              <button 
+              <button
                 disabled={currentPage === pagination.totalPages}
                 onClick={() => {
                   setCurrentPage(prev => prev + 1);
